@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProTrader · live dashboard</title>
+  <!-- Font & icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0b0e14;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* main terminal card */
+    .trading-ui {
+      max-width: 1300px;
+      width: 100%;
+      background: #131722;
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      padding: 22px 26px 26px 26px;
+      color: #e9edf5;
+      transition: all 0.1s ease;
+    }
+
+    /* header / top bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      background: linear-gradient(145deg, #2962ff, #0039cb);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: white;
+      box-shadow: 0 6px 14px rgba(41, 98, 255, 0.3);
+    }
+
+    .logo-text {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #b0c4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .market-status {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 200, 83, 0.08);
+      padding: 7px 14px;
+      border-radius: 40px;
+      border: 1px solid rgba(0, 200, 83, 0.2);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #00c853;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00c853;
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .status-text {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #b2e6c2;
+      letter-spacing: 0.3px;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #1c2230;
+      padding: 6px 6px 6px 16px;
+      border-radius: 40px;
+      border: 1px solid #2a3142;
+    }
+
+    .balance {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #b9c6e0;
+    }
+
+    .balance span {
+      color: #ffffff;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .avatar {
+      background: #2d3a5e;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #e0e7ff;
+      border: 2px solid #3b4b6e;
+      font-size: 0.9rem;
+    }
+
+    /* main grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 2.2fr 1fr;
+      gap: 18px;
+    }
+
+    /* left panel — watchlist */
+    .panel {
+      background: #1a1f2e;
+      border-radius: 20px;
+      border: 1px solid #262e3e;
+      padding: 18px 16px;
+      box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .panel-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8f9bb5;
+    }
+
+    .panel-header i {
+      color: #5a6a85;
+      font-size: 0.9rem;
+    }
+
+    .watchlist {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .watch-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 10px;
+      border-radius: 14px;
+      transition: all 0.1s ease;
+      cursor: default;
+      border-left: 2px solid transparent;
+    }
+
+    .watch-item.active {
+      background: #22293b;
+      border-left-color: #2962ff;
+    }
+
+    .ticker-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ticker-symbol {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: white;
+    }
+
+    .ticker-name {
+      font-size: 0.7rem;
+      color: #7a89a8;
+      font-weight: 500;
+    }
+
+    .ticker-price {
+      text-align: right;
+    }
+
+    .price-value {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.2px;
+    }
+
+    .price-change {
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    .positive {
+      color: #00c853;
+    }
+
+    .negative {
+      color: #ff3d5a;
+    }
+
+    /* middle panel — chart */
+    .chart-panel {
+      background: #1a1f2e;
+      border-radius: 20px;
+      border: 1px solid #262e3e;
+      padding: 18px 18px 12px 18px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.4);
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .chart-title {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .chart-title h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: white;
+    }
+
+    .chart-title .symbol-sub {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #7a89a8;
+      background: #252e40;
+      padding: 4px 10px;
+      border-radius: 30px;
+    }
+
+    .chart-price-display {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .big-price {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    .big-change {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #00c853;
+      background: rgba(0, 200, 83, 0.1);
+      padding: 4px 12px;
+      border-radius: 30px;
+    }
+
+    /* canvas chart */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      margin: 6px 0 6px 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .timeframes {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .tf-btn {
+      background: transparent;
+      border: none;
+      color: #6b7a9a;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: default;
+      transition: all 0.1s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .tf-btn.active {
+      background: #2962ff;
+      color: white;
+      box-shadow: 0 6px 12px -4px #2962ff;
+    }
+
+    /* right panel — order book / trades */
+    .order-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .order-book {
+      background: #1a1f2e;
+      border-radius: 20px;
+      border: 1px solid #262e3e;
+      padding: 16px;
+      box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.4);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #6f7d99;
+    }
+
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      padding: 6px 0;
+      border-bottom: 1px solid #212838;
+      font-weight: 500;
+    }
+
+    .order-row:last-child {
+      border-bottom: none;
+    }
+
+    .ask-price {
+      color: #ff3d5a;
+    }
+
+    .bid-price {
+      color: #00c853;
+    }
+
+    .order-size {
+      color: #a4b3d1;
+      font-weight: 400;
+    }
+
+    .depth-bar {
+      height: 2px;
+      background: #2a334a;
+      margin-top: 3px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .depth-fill {
+      height: 2px;
+      background: #2962ff;
+      width: 60%;
+    }
+
+    /* recent trades */
+    .recent-trades {
+      background: #1a1f2e;
+      border-radius: 20px;
+      border: 1px solid #262e3e;
+      padding: 16px;
+      box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.4);
+    }
+
+    .trade-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      padding: 6px 0;
+      font-weight: 500;
+    }
+
+    .trade-time {
+      color: #62708c;
+    }
+
+    /* footer / action buttons */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 0;
+      border-radius: 16px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      cursor: default;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-buy {
+      background: #00c853;
+      color: #0b0e14;
+      box-shadow: 0 10px 20px -8px #00c853;
+    }
+
+    .btn-sell {
+      background: #ff3d5a;
+      color: white;
+      box-shadow: 0 10px 20px -8px #ff3d5a;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #2d374b;
+      color: #b9c6e0;
+      box-shadow: none;
+    }
+
+    .btn-outline i {
+      color: #6f7d99;
+    }
+
+    /* subtle dividers */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: #212838;
+      margin: 12px 0;
+    }
+
+    /* Responsive fine-tuning */
+    @media (max-width: 1000px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .order-panel {
+        grid-column: span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .order-panel {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+      }
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      .market-status {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="trading-ui">
+    <!-- top bar -->
+    <div class="top-bar">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="logo-text">ProTrader</div>
+      </div>
+      <div class="market-status">
+        <div class="status-badge">
+          <div class="live-dot"></div>
+          <span class="status-text">Market live</span>
+        </div>
+        <div class="user-profile">
+          <div class="balance">USD <span>$84,392.50</span></div>
+          <div class="avatar">JD</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- main dashboard grid -->
+    <div class="dashboard-grid">
+      <!-- left: watchlist -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3><i class="far fa-star" style="margin-right: 8px;"></i>Watchlist</h3>
+          <i class="fas fa-ellipsis-h"></i>
+        </div>
+        <div class="watchlist">
+          <!-- BTC -->
+          <div class="watch-item active">
+            <div class="ticker-info">
+              <span class="ticker-symbol">BTC/USD</span>
+              <span class="ticker-name">Bitcoin</span>
+            </div>
+            <div class="ticker-price">
+              <div class="price-value" id="btc-price">$63,842.10</div>
+              <div class="price-change positive" id="btc-change"><i class="fas fa-caret-up"></i> 2.34%</div>
+            </div>
+          </div>
+          <!-- ETH -->
+          <div class="watch-item">
+            <div class="ticker-info">
+              <span class="ticker-symbol">ETH/USD</span>
+              <span class="ticker-name">Ethereum</span>
+            </div>
+            <div class="ticker-price">
+              <div class="price-value" id="eth-price">$3,412.75</div>
+              <div class="price-change positive" id="eth-change"><i class="fas fa-caret-up"></i> 1.12%</div>
+            </div>
+          </div>
+          <!-- SOL -->
+          <div class="watch-item">
+            <div class="ticker-info">
+              <span class="ticker-symbol">SOL/USD</span>
+              <span class="ticker-name">Solana</span>
+            </div>
+            <div class="ticker-price">
+              <div class="price-value" id="sol-price">$142.30</div>
+              <div class="price-change negative" id="sol-change"><i class="fas fa-caret-down"></i> 0.87%</div>
+            </div>
+          </div>
+          <!-- AAPL -->
+          <div class="watch-item">
+            <div class="ticker-info">
+              <span class="ticker-symbol">AAPL</span>
+              <span class="ticker-name">Apple Inc.</span>
+            </div>
+            <div class="ticker-price">
+              <div class="price-value" id="aapl-price">$226.84</div>
+              <div class="price-change positive" id="aapl-change"><i class="fas fa-caret-up"></i> 0.54%</div>
+            </div>
+          </div>
+          <!-- TSLA -->
+          <div class="watch-item">
+            <div class="ticker-info">
+              <span class="ticker-symbol">TSLA</span>
+              <span class="ticker-name">Tesla</span>
+            </div>
+            <div class="ticker-price">
+              <div class="price-value" id="tsla-price">$248.50</div>
+              <div class="price-change negative" id="tsla-change"><i class="fas fa-caret-down"></i> 1.23%</div>
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #5e6d8a; margin-top: 6px;">
+          <span>24h volume</span>
+          <span style="color: #b0c4ff;">$2.4B</span>
+        </div>
+      </div>
+
+      <!-- middle: chart -->
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div class="chart-title">
+            <h2>BTC/USD</h2>
+            <span class="symbol-sub">Bitcoin</span>
+          </div>
+          <div class="chart-price-display">
+            <span class="big-price" id="chart-big-price">$63,842.10</span>
+            <span class="big-change" id="chart-big-change">+2.34%</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="priceChart" width="600" height="190"></canvas>
+        </div>
+        <div class="timeframes">
+          <button class="tf-btn">1H</button>
+          <button class="tf-btn active">1D</button>
+          <button class="tf-btn">1W</button>
+          <button class="tf-btn">1M</button>
+          <button class="tf-btn">1Y</button>
+        </div>
+      </div>
+
+      <!-- right: order book & recent trades -->
+      <div class="order-panel">
+        <!-- order book -->
+        <div class="order-book">
+          <div class="order-header">
+            <span>Order book</span>
+            <span>Size (BTC)</span>
+          </div>
+          <div class="order-row">
+            <span class="ask-price">63,860.2</span>
+            <span class="order-size">1.24</span>
+          </div>
+          <div class="order-row">
+            <span class="ask-price">63,855.8</span>
+            <span class="order-size">0.87</span>
+          </div>
+          <div class="order-row">
+            <span class="ask-price">63,850.1</span>
+            <span class="order-size">2.35</span>
+          </div>
+          <div class="depth-bar"><div class="depth-fill" style="width: 70%"></div></div>
+          <div class="order-row" style="margin-top: 8px;">
+            <span class="bid-price">63,840.5</span>
+            <span class="order-size">1.02</span>
+          </div>
+          <div class="order-row">
+            <span class="bid-price">63,835.3</span>
+            <span class="order-size">0.65</span>
+          </div>
+          <div class="order-row">
+            <span class="bid-price">63,830.0</span>
+            <span class="order-size">3.12</span>
+          </div>
+          <div class="depth-bar"><div class="depth-fill" style="width: 85%; background: #00c853;"></div></div>
+        </div>
+
+        <!-- recent trades -->
+        <div class="recent-trades">
+          <div class="order-header" style="margin-bottom: 10px;">
+            <span>Recent trades</span>
+            <span>Price</span>
+          </div>
+          <div class="trade-item">
+            <span class="trade-time">12:44:23</span>
+            <span class="positive">63,842.1</span>
+          </div>
+          <div class="trade-item">
+            <span class="trade-time">12:44:18</span>
+            <span class="negative">63,839.8</span>
+          </div>
+          <div class="trade-item">
+            <span class="trade-time">12:44:05</span>
+            <span class="positive">63,845.3</span>
+          </div>
+          <div class="trade-item">
+            <span class="trade-time">12:43:52</span>
+            <span class="positive">63,848.0</span>
+          </div>
+          <div class="trade-item">
+            <span class="trade-time">12:43:40</span>
+            <span class="negative">63,836.2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- action buttons -->
+    <div class="action-bar">
+      <button class="btn btn-buy"><i class="fas fa-arrow-up"></i> Buy / Long</button>
+      <button class="btn btn-sell"><i class="fas fa-arrow-down"></i> Sell / Short</button>
+      <button class="btn btn-outline"><i class="fas fa-chart-pie"></i> Portfolio</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ----- realistic price simulation -----
+      // Base prices
+      const assets = {
+        BTC: { price: 63842.10, change: 2.34, elementPrice: 'btc-price', elementChange: 'btc-change' },
+        ETH: { price: 3412.75, change: 1.12, elementPrice: 'eth-price', elementChange: 'eth-change' },
+        SOL: { price: 142.30, change: -0.87, elementPrice: 'sol-price', elementChange: 'sol-change' },
+        AAPL: { price: 226.84, change: 0.54, elementPrice: 'aapl-price', elementChange: 'aapl-change' },
+        TSLA: { price: 248.50, change: -1.23, elementPrice: 'tsla-price', elementChange: 'tsla-change' }
+      };
+
+      // Chart reference and data
+      const canvas = document.getElementById('priceChart');
+      const ctx = canvas.getContext('2d');
+
+      // generate realistic looking chart data (30 points)
+      let chartData = [];
+      let basePrice = 63842.10;
+      for (let i = 0; i < 30; i++) {
+        // random walk with slight upward bias
+        const variation = (Math.random() - 0.48) * 150;
+        basePrice += variation;
+        chartData.push(basePrice);
+      }
+      // set last point to current BTC price
+      chartData[chartData.length - 1] = 63842.10;
+
+      // function to draw smooth chart with gradient
+      function drawChart() {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        if (!chartData.length) return;
+
+        const min = Math.min(...chartData);
+        const max = Math.max(...chartData);
+        const range = max - min || 1;
+
+        // padding
+        const padX = 12;
+        const padY = 16;
+        const graphW = w - padX * 2;
+        const graphH = h - padY * 2;
+
+        // map points to canvas coordinates
+        const points = chartData.map((val, idx) => {
+          const x = padX + (idx / (chartData.length - 1)) * graphW;
+          // invert y so higher price goes up
+          const y = padY + graphH - ((val - min) / range) * graphH;
+          return { x, y };
+        });
+
+        // draw subtle grid lines
+        ctx.strokeStyle = '#2a334a';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 4; i++) {
+          const y = padY + (i / 4) * graphH;
+          ctx.beginPath();
+          ctx.moveTo(padX, y);
+          ctx.lineTo(w - padX, y);
+          ctx.strokeStyle = '#232b3b';
+          ctx.stroke();
+        }
+
+        // draw area gradient fill
+        const gradient = ctx.createLinearGradient(0, padY, 0, h - padY);
+        gradient.addColorStop(0, 'rgba(41, 98, 255, 0.25)');
+        gradient.addColorStop(0.8, 'rgba(41, 98, 255, 0.02)');
+        gradient.addColorStop(1, 'rgba(41, 98, 255, 0)');
+
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        // close the shape to bottom
+        ctx.lineTo(points[points.length - 1].x, h - padY);
+        ctx.lineTo(points[0].x, h - padY);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // draw line
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.strokeStyle = '#2962ff';
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = '#2962ff';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // draw small dots at last point
+        const last = points[points.length - 1];
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = '#2962ff';
+        ctx.shadowColor = '#2962ff';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // initial draw
+      drawChart();
+
+      // ---- update UI with small random fluctuations (to look live) ----
+      function updatePrices() {
+        // update each asset with a small random change
+        for (let key in assets) {
+          const asset = assets[key];
+          // random delta between -0.35% and +0.35%
+          const deltaPercent = (Math.random() - 0.49) * 0.7;
+          let newPrice = asset.price * (1 + deltaPercent / 100);
+          // keep price in reasonable bounds
+          if (key === 'BTC') newPrice = Math.min(68000, Math.max(60000, newPrice));
+          if (key === 'ETH') newPrice = Math.min(3800, Math.max(3000, newPrice));
+          if (key === 'SOL') newPrice = Math.min(200, Math.max(100, newPrice));
+          if (key === 'AAPL') newPrice = Math.min(250, Math.max(200, newPrice));
+          if (key === 'TSLA') newPrice = Math.min(300, Math.max(200, newPrice));
+
+          asset.price = newPrice;
+          // update change based on 24h open (simulate as fixed baseline)
+          const basePrice = {
+            BTC: 62390, ETH: 3374, SOL: 143.5, AAPL: 225.6, TSLA: 251.6
+          }[key];
+          const change = ((newPrice - basePrice) / basePrice) * 100;
+          asset.change = change;
+
+          // format price
+          let formattedPrice = '';
+          if (key === 'BTC') formattedPrice = '$' + newPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          else if (key === 'ETH') formattedPrice = '$' + newPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          else if (key === 'SOL') formattedPrice = '$' + newPrice.toFixed(2);
+          else formattedPrice = '$' + newPrice.toFixed(2);
+
+          // update DOM
+          const priceEl = document.getElementById(asset.elementPrice);
+          if (priceEl) priceEl.textContent = formattedPrice;
+
+          const changeEl = document.getElementById(asset.elementChange);
+          if (changeEl) {
+            const isPositive = change >= 0;
+            changeEl.className = `price-change ${isPositive ? 'positive' : 'negative'}`;
+            changeEl.innerHTML = `<i class="fas fa-caret-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(change).toFixed(2)}%`;
+          }
+
+          // for BTC update chart and big display
+          if (key === 'BTC') {
+            document.getElementById('chart-big-price').textContent = formattedPrice;
+            const bigChangeEl = document.getElementById('chart-big-change');
+            const isPositive = change >= 0;
+            bigChangeEl.textContent = `${isPositive ? '+' : ''}${change.toFixed(2)}%`;
+            bigChangeEl.style.color = isPositive ? '#00c853' : '#ff3d5a';
+            bigChangeEl.style.background = isPositive ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 61, 90, 0.1)';
+
+            // update chart data (push new point, remove first)
+            chartData.push(newPrice);
+            if (chartData.length > 30) chartData.shift();
+            drawChart();
+          }
+        }
+      }
+
+      // Update every 1.8 seconds to simulate live market
+      setInterval(updatePrices, 1800);
+
+      // also redraw on resize (keep canvas sharp)
+      window.addEventListener('resize', () => {
+        // optional: keep drawing
+        drawChart();
+      });
+
+      // slight extra: make order book numbers fluctuate a bit (visual liveliness)
+      setInterval(() => {
+        // update order book prices and sizes slightly
+        const askRows = document.querySelectorAll('.ask-price');
+        const bidRows = document.querySelectorAll('.bid-price');
+        const sizes = document.querySelectorAll('.order-size');
+        // simple random tweaks for realism (just visual)
+        askRows.forEach((el, idx) => {
+          const base = 63860.2 - idx * 5.2;
+          const variation = (Math.random() - 0.5) * 4;
+          el.textContent = (base + variation).toFixed(1);
+        });
+        bidRows.forEach((el, idx) => {
+          const base = 63840.5 - idx * 5.1;
+          const variation = (Math.random() - 0.5) * 4;
+          el.textContent = (base + variation).toFixed(1);
+        });
+        sizes.forEach((el, idx) => {
+          if (idx < 3) { // asks
+            el.textContent = (Math.random() * 3 + 0.3).toFixed(2);
+          } else {
+            el.textContent = (Math.random() * 3 + 0.2).toFixed(2);
+          }
+        });
+      }, 2200);
+    })();
+  </script>
+</body>
+</html>
